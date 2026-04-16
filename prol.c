@@ -1,6 +1,6 @@
 /**
- * prol - Probable language detector (v0.6.1)
- * 25 languages. Zero-match protection. Exact kc-tpm logic.
+ * prol - Probable language detector (v0.6.2)
+ * 100% parity with kc-tpm algorithm. Integrated 25-language pack.
  */
 
 #define _POSIX_C_SOURCE 200809L
@@ -11,13 +11,13 @@
 #include <ctype.h>
 #include <unistd.h>
 
-#define PROL_VERSION "0.6.1"
+#define PROL_VERSION "0.6.2"
 #define PROL_NG_SIZE 3
-#define PROL_MAX_LANGS 64
-#define PROL_MAX_PROF 2048
+#define PROL_MAX_GRAMS 2048
+#define PROL_MAX_LANGS 32
 
 typedef struct { char g[12]; int n; } KcG;
-typedef struct { const char *c; const char *s; KcG p[PROL_MAX_PROF]; int p_sz; long tot; } KcL;
+typedef struct { const char *c; const char *s; KcG p[PROL_MAX_GRAMS]; int p_sz; long tot; } KcL;
 
 static KcL ds[PROL_MAX_LANGS] = {
     {"en", "the and are for that with this have from they which would there their about which into through across because between world hello morning everyone project matches short text quick brown fox jumps over lazy dog."},
@@ -44,8 +44,7 @@ static KcL ds[PROL_MAX_LANGS] = {
     {"ar", "من في على أن إلى ما لا عن مع كان هو الذي التي هذا هذه كل بعد إذا كان. كيف حالك؟ مرحبا بك في هذا المشروع الرائع للجميع."},
     {"he", "את של על כי המה עם כל גם את זה פה אבל לא אם הוא היא הם אלו. מה שלומך? פרויקט נהדר לזיהוי שפות שונות."},
     {"hi", "और के में है कि को ही से का पर भी यह तो था वह वे जो किया जाता है। क्या हाल है? नमस्ते आपका स्वागत है इस सॉफ्टवेयर प्रोजेक्ट में।"},
-    {"ja", "の に は を た で が と し て い れ ば な から まで より も ます です こんにちは。 プロジェクトは言語を非常に迅速に検出します。"},
-    {NULL, NULL, {{""}, 0}, 0, 0}
+    {"ja", "の に は を た で が と し て い れ ば な から まで より も ます です こんにちは。 プロジェクトは言語を非常に迅速に検出します。"}
 };
 
 static int u8_len(unsigned char c) {
@@ -106,7 +105,7 @@ static void train(KcL *l) {
             int f = 0;
             for (int j = 0; j < l->p_sz; j++)
                 if (!strcmp(l->p[j].g, g)) { l->p[j].n++; f = 1; break; }
-            if (!f && l->p_sz < PROL_MAX_PROF) {
+            if (!f && l->p_sz < PROL_MAX_GRAMS) {
                 strcpy(l->p[l->p_sz].g, g); l->p[l->p_sz].n = 1; l->p_sz++;
             }
             l->tot++;
@@ -156,7 +155,7 @@ int main(int argc, char **argv) {
     if (!txt) { int n = fread(buf, 1, sizeof(buf) - 1, stdin); if (n > 0) { buf[n] = 0; txt = buf; } }
     if (!txt || !*txt) return 0;
     R r[PROL_MAX_LANGS]; int n = 0;
-    while (ds[n].c) { train(&ds[n]); r[n].c = ds[n].c; r[n].s = calc_score(txt, &ds[n]); n++; }
+    while (n < PROL_MAX_LANGS && ds[n].c) { train(&ds[n]); r[n].c = ds[n].c; r[n].s = calc_score(txt, &ds[n]); n++; }
     qsort(r, n, sizeof(R), cmp);
     for (int i = 0; i < n && i < lim; i++) {
         if (r[i].s >= th) {
