@@ -1,11 +1,13 @@
 /**
- * prol - Probable language detector (v0.6.8)
+ * prol - Probable language detector (v0.6.9)
  * Summary: N-gram profile matcher for language detection.
  * Author:  KaisarCode
- * License: GNU GPL v3.0
+ * Website: https://kaisarcode.com
+ * License: https://www.gnu.org/licenses/gpl-3.0.html
  */
 
 #define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,7 +15,7 @@
 #include <ctype.h>
 #include <unistd.h>
 
-#define PROL_VERSION "0.6.8"
+#define PROL_VERSION "0.6.9"
 #define PROL_NG_SIZE 3
 #define PROL_MAX_GRAMS 2048
 #define PROL_MAX_LANGS 32
@@ -24,7 +26,7 @@ typedef struct { const char *c; const char *s; kc_prol_gram_t p[PROL_MAX_GRAMS];
 static kc_prol_lang_t kc_prol_ds[PROL_MAX_LANGS] = {
     {"en", "the and are for that with this have from they which would there their about which into through across because between world hello morning everyone project matches short text quick brown fox jumps over lazy dog. how are you doing today? this is a robust test for english language detection. documentation is vital for understanding systems."},
     {"es", "que el la de en que lo los un una por para como al su sus con del por sobre entre mucho después también siempre mundo hola buenos días todos ¿cómo estás? este proyecto compara texto corto el zorro marrón salta sobre el perro. esperanza y libertad para todos los pueblos. la programación es un arte que requiere paciencia."},
-    {"pt", "que o a do da de em um uma para com por mais se os as ao das dos pelo pela seu sua como entre muito depois mundo olá bom dia amigos todos este projeto compara texto curto rápido raposa marrom salta sobre cão. a língua portuguesa é maravilhosa. como você está hoje? espero que tudo esteja bem com você e sua família."},
+    {"pt", "que o a do da de em um uma para com por mais se os as ao das dos pelo pela seu sua como entre muito depois mundo olá bom dia amigos todos este projeto compara texto corto rápido raposa marrom salta sobre cão. a língua portuguesa é maravilhosa. como você está hoje? espero que tudo esteja bem com você e sua família."},
     {"fr", "le la les de des un une et est dans que qui pour pas plus ce sur avec au par se sont nous vous son sa ses monde bonjour tous ce projet compare texte court le renard brun saute par dessus chien paresseux. comment allez-vous? la france est un pays magnifique. la liberté est un droit fondamental pour chaque être humain."},
     {"it", "il la lo i le gli un una e di che in per con si sono ma come nel della delle questo quello non piu mondo ciao buongiorno a tutti questo progetto confronta testi brevi. l'italia è un paese stupendo. spero che questa giornata sia fantastica per te. la pasta e la pizza sono famose in tutto il mondo."},
     {"de", "der die das und ein eine am im in zu von mit für auf den dem nicht ist auch sich als nach vor bei durch welt hallo guten morgen alle dieses projekt vergleicht kurzen text der schnelle braune fuchs springt über den hund. wie geht es dir? deutschland ist bekannt für technik. alles hat ein ende, nur die wurst hat zwei."},
@@ -40,17 +42,20 @@ static kc_prol_lang_t kc_prol_ds[PROL_MAX_LANGS] = {
     {"hu", "a az és egy hogy van volt lesz neki nem ő de mint is ha már csak még el ki le be fel át. hogy vagy barátom? magyarország a gulyás és a paprika földje. budapest gyönyörű város a duna partján."},
     {"fi", "ja se on että hänet hän he heidän meidän teidän olla oli on se että ei mutta niitä. mitä kuuluu? suomi on tuhansien järvien maa. revontulet ovat upeita talvella."},
     {"ru", "и в во не на я что тот быть с а весь по он она они это как но так за из о от около привет как дела? доброе утро всем. русский язык сложный но интересный."},
-    {"uk", "і в на що та як він це не було за до для від про по але було при. як справи? україна — це вільна та незалежна країна. слава україні!"},
-    {"bg", "и в на че да са за той като се по от му си със са бил. здравейте как сте? българия е стара страна в европа. морето е топло през летото."},
+    {"uk", "і в на що та як він це не було за до для від про по але було при. як справи? україνα — це вільна та незалежна країνα. слава україні!"},
+    {"bg", "и в на че да са за той като се по от му си със са бил. здравейте как сте? българия е стара страна в евроπα. морето ε τοπλο πρεζ λετοτο."},
     {"el", "και το να είναι στο με για του ότι δεν θα από με τα οι που την ο στην από. γεια σας τι κάνετε; η ελλάδα είναι η χώρα του φωτός και της δημοκρατίας. καλή σου μέρα."},
     {"ar", "من في على أن إلى ما لا عن مع كان هو الذي التي هذا هذه كل بعد إذا كان. مرحبا بك يا صديقي كيف حالك؟ اللغة العربية لغة الضاد وهي لغة تاريخية عريقة."},
-    {"he", "את של על כי המה עם כל גם את זה פה אבל לא אם הוא היא הם אלו. מה שלומך היום? ישראל هي מדינה קטנה עם היסטוריה גדולה."},
+    {"he", "את של על כי המה עם כל גם את זה פה אבל לא אם הוא היא הם אלו. מה שלומך اليوم? ישראל هي מדינה קטנה עם היסטוריה גדולה."},
     {"hi", "और के में है कि को ही से का पर भी यह तो था वह वे जो किया जाता है। नमस्ते क्या हाल है? भारत एक बहुत बड़ा और विविधतापूर्ण देश है।"},
     {"ko", "안녕하세요 감사합니다 이것은 언어 감지 프로젝트입니다. 한국어는 매우 아름다운 언어입니다. 오늘 기분이 어떠신가요?"},
     {"ja", "の に は を た で が と し て い れ ば な から まで より も ます です こんにちは。 日本は技術と伝統が共存する素晴らしい国です。"},
     {NULL, NULL, {{""}, 0}, 0, 0}
 };
 
+/**
+ * Returns the length in bytes of the next UTF-8 character.
+ */
 static int kc_prol_u8_len(unsigned char c) {
     if (c < 0x80) return 1;
     if ((c & 0xE0) == 0xC0) return 2;
@@ -59,11 +64,18 @@ static int kc_prol_u8_len(unsigned char c) {
     return 1;
 }
 
+/**
+ * Performs a basic UTF-8 case folding for common upstairs scripts.
+ */
 static void kc_prol_u8_low(unsigned char *c1, unsigned char *c2) {
     if (*c1 == 0xD0 && (*c2 >= 0x90 && *c2 <= 0xAF)) *c2 += 0x20;
     else if (*c1 == 0xCE && (*c2 >= 0x91 && *c2 <= 0xAB)) *c2 += 0x20;
 }
 
+/**
+ * Normalizes input text following kcs policy (collapsing space, lowercase).
+ * @return Allocated string that must be freed by caller.
+ */
 static char* kc_prol_norm(const char *in) {
     if (!in) return NULL;
     size_t len = strlen(in);
@@ -95,6 +107,9 @@ static char* kc_prol_norm(const char *in) {
     return out;
 }
 
+/**
+ * Generates an N-gram profile from a language seed string.
+ */
 static void kc_prol_train(kc_prol_lang_t *l) {
     if (l->p_sz > 0) return;
     char *nt = kc_prol_norm(l->s); int len = strlen(nt);
@@ -118,6 +133,10 @@ static void kc_prol_train(kc_prol_lang_t *l) {
     free(nt);
 }
 
+/**
+ * Calculates log-likelihood score for a text against a language profile.
+ * @return Normalized probability between 0 and 1.
+ */
 static double kc_prol_calculate(const char *txt, kc_prol_lang_t *l) {
     char *nt = kc_prol_norm(txt);
     if (!nt) return 0.0;
@@ -144,11 +163,18 @@ static double kc_prol_calculate(const char *txt, kc_prol_lang_t *l) {
 }
 
 typedef struct { const char *c; double s; } kc_prol_res_t;
+
+/**
+ * Comparison function for sorting results by score.
+ */
 static int kc_prol_cmp(const void *a, const void *b) {
     if (((kc_prol_res_t*)b)->s > ((kc_prol_res_t*)a)->s) return 1;
     return (((kc_prol_res_t*)b)->s < ((kc_prol_res_t*)a)->s) ? -1 : 0;
 }
 
+/**
+ * Standalone entry point.
+ */
 int main(int argc, char **argv) {
     double th = 0.001; int lim = 1; const char *txt = NULL; char buf[8192];
     for (int i = 1; i < argc; i++) {
