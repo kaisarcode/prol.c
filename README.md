@@ -57,6 +57,12 @@ const char *kc_prol_detect(const char *text);
 | :--- | :--- |
 | `en` | English |
 | `es` | Spanish |
+| `pt` | Portuguese |
+| `fr` | French |
+| `de` | German |
+| `it` | Italian |
+| `nl` | Dutch |
+| `sv` | Swedish |
 
 ---
 
