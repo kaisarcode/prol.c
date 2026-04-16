@@ -1,6 +1,6 @@
 #!/bin/bash
 # test.sh
-# Summary: Validation suite for prol
+# Summary: Exhaustive validation suite for prol supporting all 26 languages.
 # Author:  KaisarCode
 # Website: https://kaisarcode.com
 # License: https://www.gnu.org/licenses/gpl-3.0.html
@@ -27,40 +27,54 @@ kc_test_run_case() {
     result=$(echo "$text" | ./prol)
     
     if [ "$result" = "$expected" ]; then
-        echo "[PASS] '$text' -> $result"
+        echo "[PASS] [$expected] '$text'"
         return 0
     else
-        echo "[FAIL] '$text' -> Expected $expected, got '$result'"
+        echo "[FAIL] [$expected] '$text' -> Got '$result'"
         return 1
     fi
 }
 
-# Run the complete test suite
+# Run the complete test suite for all 26 languages
 # @return 0 if all tests pass, 1 otherwise
 kc_test_main() {
     local failed=0
     
     kc_test_check_binary || exit 1
     
-    echo "Starting prol validation suite..."
-    echo "--------------------------------"
+    echo "Starting full prol validation suite (26 languages)..."
+    echo "----------------------------------------------------"
     
     kc_test_run_case "Hello world" "en" || failed=$((failed + 1))
-    kc_test_run_case "¿Cómo estás?" "es" || failed=$((failed + 1))
-    kc_test_run_case "Bom dia" "pt" || failed=$((failed + 1))
-    kc_test_run_case "Bonjour" "fr" || failed=$((failed + 1))
-    kc_test_run_case "Ciao" "it" || failed=$((failed + 1))
     kc_test_run_case "Guten Morgen" "de" || failed=$((failed + 1))
-    kc_test_run_case "привет" "ru" || failed=$((failed + 1))
+    kc_test_run_case "Hoe gaat het?" "nl" || failed=$((failed + 1))
+    kc_test_run_case "¿Cómo estás?" "es" || failed=$((failed + 1))
+    kc_test_run_case "Bom dia amigos" "pt" || failed=$((failed + 1))
+    kc_test_run_case "Bonjour tout le monde" "fr" || failed=$((failed + 1))
+    kc_test_run_case "Ciao a tutti" "it" || failed=$((failed + 1))
+    kc_test_run_case "Ce mai faci?" "ro" || failed=$((failed + 1))
+    kc_test_run_case "Hur mår du?" "sv" || failed=$((failed + 1))
+    kc_test_run_case "Hvordan går det?" "da" || failed=$((failed + 1))
+    kc_test_run_case "Hvordan har du det?" "no" || failed=$((failed + 1))
+    kc_test_run_case "Cześć, jak się masz?" "pl" || failed=$((failed + 1))
+    kc_test_run_case "Jak se máš?" "cs" || failed=$((failed + 1))
+    kc_test_run_case "привіт як справи" "uk" || failed=$((failed + 1))
+    kc_test_run_case "доброе утро" "ru" || failed=$((failed + 1))
+    kc_test_run_case "здравейте как сте" "bg" || failed=$((failed + 1))
+    kc_test_run_case "Hogy vagy?" "hu" || failed=$((failed + 1))
+    kc_test_run_case "Mitä kuuluu?" "fi" || failed=$((failed + 1))
     kc_test_run_case "γεια σας" "el" || failed=$((failed + 1))
-    kc_test_run_case "안녕하세요" "ko" || failed=$((failed + 1))
-    kc_test_run_case "こんにちは" "ja" || failed=$((failed + 1))
-    kc_test_run_case "क्या हाल है" "hi" || failed=$((failed + 1))
+    kc_test_run_case "Nasılsın?" "tr" || failed=$((failed + 1))
+    kc_test_run_case "Apa kabar?" "id" || failed=$((failed + 1))
     kc_test_run_case "مرحبا بك" "ar" || failed=$((failed + 1))
+    kc_test_run_case "מה שלומך?" "he" || failed=$((failed + 1))
+    kc_test_run_case "नमस्ते" "hi" || failed=$((failed + 1))
+    kc_test_run_case "こんにちは" "ja" || failed=$((failed + 1))
+    kc_test_run_case "안녕하세요" "ko" || failed=$((failed + 1))
     
-    echo "--------------------------------"
+    echo "----------------------------------------------------"
     if [ "$failed" -eq 0 ]; then
-        echo "[SUCCESS] All tests passed!"
+        echo "[SUCCESS] All 26 tests passed!"
         return 0
     else
         echo "[FAILURE] $failed tests failed."
