@@ -57,7 +57,7 @@ When `--limit` is greater than `1`, it prints `code: score` lines.
 POSIX:
 
 ```bash
-cc -std=c99 -O3 libprol.c prol.c -I. -lm -pthread -o prol
+cc -O2 -std=c99 -I. libprol.c prol.c -lm -pthread -o prol
 ```
 
 Windows:
