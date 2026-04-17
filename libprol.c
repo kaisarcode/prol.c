@@ -66,13 +66,12 @@ static prol_lang_t prol_langs[PROL_MAX_LANGS] = {
     PROL_LANG("hu", "a az és egy hogy van volt lesz neki nem ő de mint is ha már csak még el ki le be fel át. hogy vagy barátom? magyarország a gulyás és a paprika földje. budapest gyönyörű város a duna partján."),
     PROL_LANG("fi", "ja se on että hänet hän he heidän meidän teidän olla oli on se että ei mutta niitä. mitä kuuluu? suomi on tuhansien järvien maa. revontulet ovat upeita talvella."),
     PROL_LANG("ru", "и в во не на я что тот быть с а весь по он она они это как но так за из о от около привет как дела? доброе утро всем. русский язык сложный но интересный."),
-    PROL_LANG("uk", "і в на що та як він це не було за до для від про по але було при. як справи? україна — це вільна та незалежна країна. слава україні!"),
-    PROL_LANG("bg", "и в на че да са за той като се по от му си със са бил. здравейте как сте? българия е стара страна в евроπα. морето ε τοπλο πρεζ λετοτο."),
+    PROL_LANG("uk", "і в на що та як він це не було за до для від про po але було при. як справи? україна — це вільна та незалежна країна. слава україні!"),
+    PROL_LANG("bg", "и в на че да са за той като се по от му си със бил здравейте как сте? българия е стара страна в европа. морето е красиво и планините са величествени. българският език има богата история."),
     PROL_LANG("el", "και το να είναι στο με για του ότι δεν θα από με τα οι που την ο στην από. γεια σας τι κάνετε; η ελλάδα είναι η χώρα του φωτός και της δημοκρατίας. καλή σου μέρα."),
     PROL_LANG("ar", "من في على أن إلى ما لا عن مع كان هو الذي التي هذا هذه كل بعد إذا كان. مرحبا بك يا صديقي كيف حالك؟ اللغة العربية لغة الضاد وهي لغة تاريخية عريقة."),
     PROL_LANG("he", "את של על כי המה עם כל גם את זה פה אבל לא אם הוא היא הם אלו. מה שלומך היום? ישראל היא מדינה קטנה עם היסטוריה גדולה."),
     PROL_LANG("hi", "और के में है कि को ही से का पर भी यह तो था वह वे जो किया जाता है। नमस्ते क्या हाल है? भारत एक बहुत बड़ा और विविधतापूर्ण देश है।"),
-    PROL_LANG("ko", "안녕하세요 감사합니다 이것은 언어 감지 프로젝트입니다. 한국어는 매우 아름다운 언어입니다. 오늘 기분이 어떠신가요?"),
     PROL_LANG("ja", "の に は を た で が と し て い れ ば な から まで より も ます です こんにちは。 日本は技術と伝統が共存する素晴らしい国です。"),
     PROL_LANG("ko", "안녕하세요 감사합니다 이것은 언어 감지 프로젝트입니다. 한국어는 매우 아름다운 언어입니다. 오늘 기분이 어떠신가요?"),
     {
@@ -215,7 +214,11 @@ static void prol_train(prol_lang_t *lang) {
     }
 
     len = (int)strlen(normalized);
-    for (i = 0; i <= len - PROL_NG_SIZE; i += prol_u8_len((unsigned char)normalized[i])) {
+    for (
+        i = 0;
+        i <= len - PROL_NG_SIZE;
+        i += prol_u8_len((unsigned char)normalized[i])
+    ) {
         char gram[12];
         const char *it;
         int byte_count;
@@ -292,7 +295,11 @@ static double prol_score(const char *text, const prol_lang_t *lang) {
     matches = 0;
     log_sum = 0.0;
 
-    for (i = 0; i <= len - PROL_NG_SIZE; i += prol_u8_len((unsigned char)normalized[i])) {
+    for (
+        i = 0;
+        i <= len - PROL_NG_SIZE;
+        i += prol_u8_len((unsigned char)normalized[i])
+    ) {
         char gram[12];
         const char *it;
         int byte_count;
@@ -332,7 +339,10 @@ static double prol_score(const char *text, const prol_lang_t *lang) {
             }
         }
 
-        log_sum += log(((double)count + 0.1) / ((double)lang->total + ((double)lang->profile_size * 0.1)));
+        log_sum += log(
+            ((double)count + 0.1) /
+            ((double)lang->total + ((double)lang->profile_size * 0.1))
+        );
         total_grams++;
     }
 
@@ -342,7 +352,9 @@ static double prol_score(const char *text, const prol_lang_t *lang) {
         return 0.0;
     }
 
-    return 1.0 / (1.0 + exp(-8.0 * ((log_sum / (double)total_grams) - (-5.25))));
+    return 1.0 / (
+        1.0 + exp(-8.0 * ((log_sum / (double)total_grams) - (-5.25)))
+    );
 }
 
 /**
@@ -381,7 +393,7 @@ static void prol_init_once(void) {
 
 /**
  * Initializes internal library state.
- * @return 0 on success, non-zero on failure.
+ * @return 0 on success, or a non-zero pthread_once error code on failure.
  */
 int prol_init(void) {
     return pthread_once(&prol_once, prol_init_once);
@@ -410,7 +422,12 @@ const char *prol_detect(const char *text) {
  * @param threshold Minimum score threshold.
  * @return Number of results written to out.
  */
-int prol_detect_top(const char *text, prol_result_t *out, int max_results, double threshold) {
+int prol_detect_top(
+    const char *text,
+    prol_result_t *out,
+    int max_results,
+    double threshold
+) {
     prol_rank_t ranks[PROL_MAX_LANGS];
     int lang_count;
     int i;

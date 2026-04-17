@@ -26,8 +26,8 @@ typedef struct {
 
 /**
  * Initializes internal language profiles.
- * @param No parameters.
- * @return 0 on success, or -1 on internal initialization failure.
+ * @param none No parameters.
+ * @return 0 on success, or a non-zero pthread_once error code on failure.
  */
 int prol_init(void);
 
@@ -46,7 +46,12 @@ const char *prol_detect(const char *text);
  * @param threshold Minimum score required for inclusion.
  * @return Number of results written to out.
  */
-int prol_detect_top(const char *text, prol_result_t *out, int max_results, double threshold);
+int prol_detect_top(
+    const char *text,
+    prol_result_t *out,
+    int max_results,
+    double threshold
+);
 
 #ifdef __cplusplus
 }

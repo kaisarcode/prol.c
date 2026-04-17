@@ -49,10 +49,13 @@ prol -t 0.5 "Cześć!"
 printf 'Bom dia' | prol
 ```
 
+When `--limit` is `1`, `prol` prints only the best language code.
+When `--limit` is greater than `1`, it prints `code: score` lines.
+
 ## Build
 
 ```bash
-gcc -std=c99 -O3 libprol.c prol.c -I. -lm -o prol
+gcc -std=c99 -O3 libprol.c prol.c -I. -lm -pthread -o prol
 ```
 
 ## Library Example
