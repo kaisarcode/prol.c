@@ -1,98 +1,168 @@
-# prol - Probable Language Detector
+# prol
 
-A lightweight, single-file C utility for probabilistic language detection.
+Probable language detector in C.
+
+## Summary
+
+`prol` is a language detector implemented in C.
+
+The project is split into two parts:
+
+- `libprol`: reusable detection library
+- `prol`: thin command-line interface over `libprol`
 
 ## Features
-- **Integrated Engine**: No external maps required. Supports 26 languages out of the box.
-- **N-Gram Probabilities**: Uses 3-character N-gram sliding windows for high accuracy.
-- **UTF-8 Aware**: Correctly handles accent marks and non-Latin charsets (Cyrillic, Greek, Hindi, etc.).
-- **Zero-Match Protection**: Discards languages with no matching n-grams to avoid false positives.
 
-## Supported Languages
-`en`, `es`, `pt`, `fr`, `it`, `de`, `nl`, `sv`, `da`, `no`, `pl`, `tr`, `id`, `ro`, `cs`, `hu`, `fi`, `ru`, `uk`, `bg`, `el`, `ar`, `he`, `hi`, `ja`, `ko`.
+- Embedded language dataset
+- 3-gram profile matching
+- UTF-8 aware normalization
+- No external runtime dependencies
+- Small public C API
+- CLI built on top of the library
 
-## Usage
+## Project Layout
 
-### Simple detection
+```text
+prol.h
+libprol.c
+prol.c
+```
+
+- `prol.h`: public API
+- `libprol.c`: detection engine
+- `prol.c`: CLI wrapper
+
+## Public API
+
+```c
+typedef struct {
+    const char *code;
+    double score;
+} prol_result_t;
+
+const char *prol_detect(const char *text);
+
+int prol_detect_top(
+    const char *text,
+    prol_result_t *out,
+    int max_results,
+    double threshold
+);
+```
+
+## API Notes
+
+- `prol_detect` returns the best detected language code
+- `prol_detect_top` writes ranked results into `out`
+- results are ordered by descending score
+- `threshold` filters weak matches
+- the return value is the number of results written
+
+## CLI Usage
+
+### Detect one language
+
 ```bash
 prol "¿Cómo estás?"
-# Output: es
 ```
 
-### Top Rank (Multi-result)
+Expected output:
+
+```text
+es
+```
+
+### Return top results
+
 ```bash
 prol -l 3 "Hello world"
-# Output: 
-# en: 0.1878
-# de: 0.0032
-# nl: 0.0015
 ```
 
-### Threshold filtering
+### Filter by threshold
+
 ```bash
 prol -t 0.5 "Cześć!"
 ```
 
-### Piped Input
+### Read from standard input
+
 ```bash
 echo "Bom dia" | prol
 ```
 
-## Compilation
+## CLI Options
 
-### Linux (Standard)
-Build with dynamic linkage to system glibc:
+- `-l <n>`: maximum number of results to print
+- `-t <f>`: minimum score threshold
+
+Default values:
+
+- result limit: `1`
+- threshold: `0.001`
+
+## Build
+
+### Build library and CLI
+
 ```bash
-gcc -O3 prol.c -o prol -lm
+gcc -std=c99 -O3 libprol.c prol.c -I. -lm -o prol
 ```
 
-### Linux (Portable/Static)
-Build a standalone binary without dependencies using `musl`:
+### Build static library only
+
 ```bash
-musl-gcc -O3 -static prol.c -o prol -lm
-strip prol
+gcc -std=c99 -O3 -c libprol.c -I.
+ar rcs libprol.a libprol.o
 ```
 
-### macOS / iOS
-Static linking is not supported for system libraries on Apple platforms.
+## Integration Example
 
-**macOS:**
-```bash
-gcc -O3 prol.c -o prol
+```c
+#include "prol.h"
+
+int main(void) {
+    const char *lang;
+
+    lang = prol_detect("Bonjour tout le monde");
+    return lang ? 0 : 1;
+}
 ```
 
-**iOS (arm64):**
-```bash
-xcrun -sdk iphoneos clang -O3 -arch arm64 prol.c -o prol-ios
-```
+## Supported Languages
 
-### Windows
-`prol` is standard C99 and can be compiled using MinGW or MSVC.
+- English (`en`)
+- Spanish (`es`)
+- Portuguese (`pt`)
+- French (`fr`)
+- Italian (`it`)
+- German (`de`)
+- Dutch (`nl`)
+- Swedish (`sv`)
+- Danish (`da`)
+- Norwegian (`no`)
+- Polish (`pl`)
+- Turkish (`tr`)
+- Indonesian (`id`)
+- Romanian (`ro`)
+- Czech (`cs`)
+- Hungarian (`hu`)
+- Finnish (`fi`)
+- Russian (`ru`)
+- Ukrainian (`uk`)
+- Bulgarian (`bg`)
+- Greek (`el`)
+- Arabic (`ar`)
+- Hebrew (`he`)
+- Hindi (`hi`)
+- Japanese (`ja`)
+- Korean (`ko`)
 
-**Using MinGW (GCC):**
-```bash
-gcc -O3 prol.c -o prol.exe -lm
-```
+## Implementation Notes
 
-**Using MSVC (cl.exe):**
-```bash
-cl.exe /O2 prol.c /Fe:prol.exe
-```
-
-### Android
-For Android, cross-compile for the `aarch64` architecture.
-
-**Portable Static (Recommended for Termux/Shell):**
-Use an `aarch64-linux-musl-gcc` cross-compiler:
-```bash
-aarch64-linux-musl-gcc -O3 -static prol.c -o prol-android -lm
-```
-
-**Using Android NDK:**
-```bash
-$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang \
-    -O3 prol.c -o prol-android -lm
-```
+- Embedded dataset
+- Lazy profile training
+- Internal global state
+- Not thread-safe
 
 ---
 
