@@ -11,8 +11,6 @@ For an input text, `prol`:
 3. ranks the most probable matches
 4. returns either the best match or the top candidates
 
-This extracts the language detection primitive into a reusable C library.
-
 ## Public API
 
 The library is exposed through [prol.h](./prol.h).
